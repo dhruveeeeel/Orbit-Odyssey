@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive 3D Uranus</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+        .button-container {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+        }
+        .slider {
+            display: none;
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .slider button {
+            display: block;
+            margin: 5px;
+        }
+        #solarSystemButton {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        #previousPlanetButton {
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            transform: translateY(-50%);
+        }
+        #nextPlanetButton {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+        }
+        #openSliderButton {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        #sliderContainer {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .axis-slider {
+            width: 150px;
+            margin: 5px;
+        }
+        input[type="range"] {
+            width: 150px;
+            margin-bottom: 10px;
+        }
+        #music-toggle {
+            position: fixed;
+            cursor: pointer;
+            width: 50px;
+            height: 50px;
+            top: 10px;
+            right: 10px;
+        }
+    </style>
+        
+</head>
+<body>
+    <div class="button-container">
+        <button id="solarSystemButton" onclick="openSolarSystem()">SOLAR SYSTEM</button>
+        <button id="previousPlanetButton" onclick="loadPreviousPlanet()">PREVIOUS PLANET</button>
+        <button id="nextPlanetButton" onclick="loadNextPlanet()">NEXT PLANET</button>
+        <button id="openSliderButton" onclick="toggleSlider()">MORE</button>
+    </div>
+    
+    <div class="slider" id="slider">
+        <button onclick="buttonClicked(1)">MISSIONS</button>
+        <button onclick="buttonClicked(2)">HISTORY</button>
+        <button onclick="buttonClicked(3)">NEIGHBORS</button>
+    </div>
+
+    <div id="sliderContainer">
+        <p>AXIS SLIDERS</p>
+        <input type="range" min="-500" max="500" value="0" class="axis-slider" id="ySlider" oninput="updateCameraPosition()">
+        <input type="range" min="-2000" max="1000" value="150" class="axis-slider" id="zSlider" oninput="updateCameraPosition()">
+        <input type="range" min="-500" max="500" value="0" class="axis-slider" id="xSlider" oninput="updateCameraPosition()">
+    </div>
+
+
+    <script src="https://threejs.org/build/three.js"></script>
+    <script>
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        function updateCameraPosition() {
+            camera.position.x = document.getElementById('xSlider').value;
+            camera.position.y = document.getElementById('ySlider').value;
+            camera.position.z = document.getElementById('zSlider').value;
+            camera.lookAt(scene.position);
+            renderer.render(scene, camera);
+        }
+
+        function addShinyStars() {
+            var starsGeometry = new THREE.BufferGeometry();
+            var starsMaterial = new THREE.PointsMaterial({ color: 0xFFFFFF, size: 0.4, transparent: true, opacity: 2.3 });
+
+            var starsVertices = [];
+            for (var i = 0; i < 15000; i++) {
+                var x = (Math.random() - 0.5) * 2000;
+                var y = (Math.random() - 0.5) * 2000;
+                var z = (Math.random() - 0.5) * 2000;
+                starsVertices.push(x, y, z);
+            }
+
+            starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+            var stars = new THREE.Points(starsGeometry, starsMaterial);
+            scene.add(stars);
+        }
+
+        // Call the function to add shiny stars
+        addShinyStars();
+
+        var geometry = new THREE.SphereGeometry(5, 32, 32);
+        var texture = new THREE.TextureLoader().load('URANUS.jpg');
+        var material = new THREE.MeshBasicMaterial({ map: texture });
+        var uranus = new THREE.Mesh(geometry, material);
+        scene.add(uranus);
+        function toggleSlider() {
+            var slider = document.getElementById('slider');
+            slider.style.display = (slider.style.display === 'none' || slider.style.display === '') ? 'block' : 'none';
+        }
+
+        function buttonClicked(buttonNumber) {
+            if (buttonNumber==1){
+                window.location.href = 'missions.html';
+            }else if(buttonNumber==2){
+                window.location.href = 'history.html';
+            }else if(buttonNumber==3){
+                window.location.href = 'neighbors.html';
+            }
+            
+        }
+
+
+        camera.position.z = 25;
+
+        window.addEventListener('resize', function () {
+            var newWidth = window.innerWidth;
+            var newHeight = window.innerHeight;
+            camera.aspect = newWidth / newHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(newWidth, newHeight);
+        });
+
+        window.addEventListener('wheel', function (event) {
+            camera.position.z += event.deltaY * 0.1;
+        });
+
+        var isDragging = false;
+        var previousMousePosition = {
+            x: 0,
+            y: 0
+        };
+
+        window.addEventListener('mousedown', function (event) {
+            isDragging = true;
+        });
+
+        window.addEventListener('mouseup', function (event) {
+            isDragging = false;
+        });
+
+        window.addEventListener('mousemove', function (event) {
+            var deltaMove = {
+                x: event.clientX - previousMousePosition.x,
+                y: event.clientY - previousMousePosition.y
+            };
+
+            if (isDragging) {
+                var deltaRotationQuaternion = new THREE.Quaternion()
+                    .setFromEuler(new THREE.Euler(
+                        toRadians(deltaMove.y * 0.1),
+                        toRadians(deltaMove.x * 0.1),
+                        0,
+                        'XYZ'
+                    ));
+
+                uranus.quaternion.multiplyQuaternions(deltaRotationQuaternion, uranus.quaternion);
+            }
+
+            previousMousePosition = {
+                x: event.clientX,
+                y: event.clientY
+            };
+        });
+
+        function openSolarSystem() {
+            // Open solar_system.html when the button is pressed
+            window.location.href = '../../solar_system.html';
+        }
+        function loadPreviousPlanet() {
+            window.location.href = '../saturn/saturn.html';
+        }
+        function loadNextPlanet() {
+            window.location.href = '../neptune/neptune.html';
+        }
+
+        function toRadians(angle) {
+            return angle * (Math.PI / 360);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            uranus.rotation.y += 0.01;
+        
+            renderer.render(scene, camera);
+        }
+        
+
+        animate();
+        
+    </script>
+</body>
+</html>
